@@ -62,6 +62,42 @@ docs/specs/<SPEC-ID>/
 cp -r skills/* .claude/skills/
 ```
 
+## 更新
+
+```bash
+# 检查更新
+/plugin list
+
+# 更新到最新版本
+/plugin update flow-spec-suite@ccteams_spec
+
+# 或重新安装强制更新
+/plugin uninstall flow-spec-suite@ccteams_spec
+/plugin install flow-spec-suite@ccteams_spec
+```
+
+手动安装更新：
+```bash
+# 删除旧版本
+rm -rf .claude/skills/flow-*
+
+# 复制新版本
+cp -r /path/to/ccteams_spec/skills/* .claude/skills/
+```
+
+## 卸载
+
+```bash
+# 通过插件管理器
+/plugin uninstall flow-spec-suite@ccteams_spec
+
+# 或手动卸载
+rm -rf .claude/skills/flow-new
+rm -rf .claude/skills/flow-continue
+rm -rf .claude/skills/flow-sync
+rm -rf .claude/skills/flow-ff
+```
+
 ## License
 
 MIT

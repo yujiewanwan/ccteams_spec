@@ -62,6 +62,42 @@ docs/specs/<SPEC-ID>/
 cp -r skills/* .claude/skills/
 ```
 
+## Update
+
+```bash
+# Check for updates
+/plugin list
+
+# Update to latest version
+/plugin update flow-spec-suite@ccteams_spec
+
+# Or reinstall to force update
+/plugin uninstall flow-spec-suite@ccteams_spec
+/plugin install flow-spec-suite@ccteams_spec
+```
+
+For manual install:
+```bash
+# Remove old version
+rm -rf .claude/skills/flow-*
+
+# Copy new version
+cp -r /path/to/ccteams_spec/skills/* .claude/skills/
+```
+
+## Uninstall
+
+```bash
+# Via plugin manager
+/plugin uninstall flow-spec-suite@ccteams_spec
+
+# Or manual
+rm -rf .claude/skills/flow-new
+rm -rf .claude/skills/flow-continue
+rm -rf .claude/skills/flow-sync
+rm -rf .claude/skills/flow-ff
+```
+
 ## License
 
 MIT
