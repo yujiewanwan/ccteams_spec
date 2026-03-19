@@ -14,43 +14,6 @@ Spec-driven development workflow for Claude Code. Four commands from idea to mer
 | Development | Human writes code | Agent-teams fully automated |
 | Best For | Conservative enterprises | Efficiency-focused teams |
 
-## Quick Start
-
-```bash
-# 1. Create spec (human alignment)
-/flow:new
-# → PM + Architect + QA agents ask questions in parallel
-# → Generates docs/specs/SPEC-001/spec.yaml
-
-# 2. Develop (fully automated)
-/flow:continue        # Start agent-teams (FE/BE/QA/Review)
-/flow:continue        # Auto test, then human verification
-/flow:continue        # Confirm human testing done
-
-# 3. Finish
-/flow:sync            # Update docs, output PR checklist
-```
-
-**Status flow:** `draft → approved → in-progress → human-testing → done`
-
-## Commands
-
-| Command | What it does |
-|---------|--------------|
-| `/flow:new` | Three agents align in parallel → generate spec |
-| `/flow:continue` | Auto-execute next step based on spec.yaml status |
-| `/flow:sync` | Update docs, generate PR checklist |
-| `/flow:ff` | Fast-forward mode (when all ACs are automated) |
-
-## Artifacts
-
-```
-docs/specs/<SPEC-ID>/
-├── requirement.md    # Requirements (human-readable)
-├── test-cases.md     # Test cases (human-readable)
-└── spec.yaml         # Machine contract (drives workflow)
-```
-
 ## Installation
 
 ```bash
@@ -96,6 +59,43 @@ rm -rf .claude/skills/flow-new
 rm -rf .claude/skills/flow-continue
 rm -rf .claude/skills/flow-sync
 rm -rf .claude/skills/flow-ff
+```
+
+## Quick Start
+
+```bash
+# 1. Create spec (human alignment)
+/flow:new
+# → PM + Architect + QA agents ask questions in parallel
+# → Generates docs/specs/SPEC-001/spec.yaml
+
+# 2. Develop (fully automated)
+/flow:continue        # Start agent-teams (FE/BE/QA/Review)
+/flow:continue        # Auto test, then human verification
+/flow:continue        # Confirm human testing done
+
+# 3. Finish
+/flow:sync            # Update docs, output PR checklist
+```
+
+**Status flow:** `draft → approved → in-progress → human-testing → done`
+
+## Commands
+
+| Command | What it does |
+|---------|--------------|
+| `/flow:new` | Three agents align in parallel → generate spec |
+| `/flow:continue` | Auto-execute next step based on spec.yaml status |
+| `/flow:sync` | Update docs, generate PR checklist |
+| `/flow:ff` | Fast-forward mode (when all ACs are automated) |
+
+## Artifacts
+
+```
+docs/specs/<SPEC-ID>/
+├── requirement.md    # Requirements (human-readable)
+├── test-cases.md     # Test cases (human-readable)
+└── spec.yaml         # Machine contract (drives workflow)
 ```
 
 ## License
