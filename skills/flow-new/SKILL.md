@@ -142,7 +142,7 @@ author: ""
 
 git:
   worktree_enabled: false
-  worktree_path: ""
+  worktree_path: ".worktrees/<SPEC-ID>"  # Create .worktrees/ in project root
   branch: ""
   base_branch: "main"
   pr_required: true
@@ -285,6 +285,22 @@ Your choice:
 
 ## Worktree Setup (if enabled)
 
+**Check .gitignore for .worktrees/**
+
+```bash
+grep -q ".worktrees/" .gitignore 2>/dev/null && echo "Already ignored" || echo "Not found"
+```
+
+If not found, ask user:
+> `.worktrees/` is not in .gitignore yet. Add it now? [yes/no]
+
+**If user says yes:**
+```bash
+echo ".worktrees/" >> .gitignore
+git add .gitignore
+git commit -m "chore: add .worktrees to .gitignore"
+```
+
 **Step 1: Commit spec documents to main**
 
 ```bash
@@ -297,14 +313,14 @@ git log --oneline -1
 **Step 2: Create worktree from the new commit**
 
 ```bash
-git worktree add <worktree_path> -b <branch>
+git worktree add .worktrees/<SPEC-ID> -b <branch>
 git worktree list
 ```
 
 Then print:
 
 > ⚠️ **Open a new Claude window for execution.**
-> Working directory: `<worktree_path>`
+> Working directory: `.worktrees/<SPEC-ID>/`
 > The spec is at: `docs/specs/<SPEC-ID>/spec.yaml`
 > Say: **`/flow:continue`** — Claude will find it automatically.
 > Do not run agents in this window.
