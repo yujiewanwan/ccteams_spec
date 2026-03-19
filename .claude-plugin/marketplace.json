@@ -1,0 +1,25 @@
+{
+  "name": "flow-spec-suite",
+  "owner": {
+    "name": "yujiewanwan",
+    "email": "jerrywan965@gmail.com"
+  },
+  "metadata": {
+    "description": "Spec-driven development workflow: flow:new, flow:continue, flow:sync, flow:ff",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "flow-spec-suite",
+      "description": "Complete spec-driven development workflow for managing feature specs from alignment to merge",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/flow-new",
+        "./skills/flow-continue",
+        "./skills/flow-sync",
+        "./skills/flow-ff"
+      ]
+    }
+  ]
+}

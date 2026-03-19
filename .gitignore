@@ -1,0 +1,30 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Node/Python (if any)
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.local
+
+# Build artifacts
+dist/
+build/
+*.zip
+*.tar.gz
