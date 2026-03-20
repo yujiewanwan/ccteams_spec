@@ -336,7 +336,9 @@ When they return and say `/flow:continue` or "done testing", proceed to next sta
 
 ### If status = `human-testing` → Confirm Completion
 
-Print human test checklist (for reference only):
+**Calling `/flow:continue` when status is `human-testing` means the user has returned from manual testing.**
+
+Treat this as "testing complete" by default. Print:
 
 ```
 Human Test Checklist — <spec_id>
@@ -346,18 +348,18 @@ Human Test Checklist — <spec_id>
 ─────────────────────────────────────
 ```
 
-Then ask:
-> Is human testing complete? I will proceed to the final stage.
-> [complete / issues found]
+Then ask (one question, two options):
+> All manual tests passed?
+> [yes — mark done] / [no — describe what failed]
 
-**User replies "complete" or "done":**
+**User says "yes" or "done" or "passed":**
 - Set `status: done` in spec.yaml
 - Print:
   ```
-  Confirmed complete. Run /flow:sync to update docs and generate PR checklist.
+  ✓ Marked done. Run /flow:sync to update docs and generate PR checklist.
   ```
 
-**User reports issues:**
+**User reports failures:**
 - Ask for details
 - Record `failure_note` on the failing AC in spec.yaml
 - Set `status: in-progress`
