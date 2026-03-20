@@ -120,24 +120,32 @@ Hard constraints:
 - Do not add any UI elements not listed in components
 ```
 
-**QA Engineer (with agent-browser):**
+**QA Engineer (starts services + tests with agent-browser):**
 ```
 ## QA Engineer — <spec_id>
 
 Read: docs/specs/<SPEC-ID>/spec.yaml (acceptance_criteria + agent_teams.qa_engineer)
 Read: docs/specs/<SPEC-ID>/test-cases.md
 
-Write and run ALL tests:
-- unit → <project unit framework>
-- integration → Supertest / httpx against local server
-- e2e → agent-browser (MUST use real browser, not mocked)
-  - Start service: <startup_command>
-  - Test against: <local_url>
-  - Include browser steps as comments for reproducibility
+Responsibilities:
+1. Start services automatically (do NOT wait for human):
+   - Backend: <startup_command_backend> (e.g., ./mvnw spring-boot:run)
+   - Frontend: <startup_command_frontend> (e.g., npm run dev)
+   - Wait for <local_url> to be ready
+
+2. Run ALL tests:
+   - unit tests
+   - integration tests (against running backend)
+   - e2e tests with agent-browser (real browser, automated)
+     - MUST use agent-browser tool, never mock
+     - Include browser steps as comments
+
+3. Stop services after testing
 
 Coverage target: <coverage_target>
 
 Hard constraints:
+- YOU start the services, do not ask human to start
 - Every "must" AC must have a passing test
 - Use agent-browser for e2e, never mock browser
 - Do not test anything in out_of_scope
@@ -163,12 +171,19 @@ For each failure: comment with AC id, return to relevant agent for fix.
 
 ### If status = `in-progress` → Run Pre-Test Gate
 
-The QA agent must confirm all of the following before human-test:
+QA Agent executes:
+1. Start backend service
+2. Start frontend service
+3. Wait for services ready
+4. Run all tests (unit/integration/e2e with agent-browser)
+5. Generate coverage report
+6. Stop services
 
+Pre-test gate checklist:
 ```
 Pre-test gate — <spec_id>
 
-[ ] Local service running at <local_url> (start: <startup_command>)
+[ ] Services started by QA Agent (not human)
 [ ] All unit tests passed
 [ ] All integration tests passed
 [ ] agent-browser e2e tests passed

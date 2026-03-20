@@ -218,8 +218,9 @@ agent_teams:
     notes: ""
   qa_engineer:
     scope: ""
-    startup_command: ""
-    local_url: ""
+    startup_command_backend: ""  # e.g., "./mvnw spring-boot:run"
+    startup_command_frontend: "" # e.g., "npm run dev"
+    local_url: ""                # e.g., "http://localhost:3000"
     test_mapping:
       - ac_id: "AC-01"
         test_file: ""
