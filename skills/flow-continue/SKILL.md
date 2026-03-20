@@ -73,8 +73,15 @@ Status → artifact state mapping:
 
 Set `status: in-progress` in spec.yaml before starting.
 
-Dispatch each agent with only their relevant spec sections.
-Agents run in this order: Backend → Frontend → QA (in parallel where possible).
+Dispatch all 4 agents in parallel. Each agent works independently with their relevant spec sections.
+
+Parallel agent execution:
+- Backend Engineer → implements API/services
+- Frontend Engineer → implements UI components
+- QA Engineer → writes and runs all tests (unit/integration/e2e with agent-browser)
+- Architect Reviewer → reviews code against spec and checklist
+
+All agents report results. If any agent finds issues, coordinate fixes.
 
 **Backend Engineer:**
 ```
@@ -113,26 +120,26 @@ Hard constraints:
 - Do not add any UI elements not listed in components
 ```
 
-**QA Engineer:**
+**QA Engineer (with agent-browser):**
 ```
 ## QA Engineer — <spec_id>
 
 Read: docs/specs/<SPEC-ID>/spec.yaml (acceptance_criteria + agent_teams.qa_engineer)
 Read: docs/specs/<SPEC-ID>/test-cases.md
 
-Write and run all tests per test_mapping.
+Write and run ALL tests:
+- unit → <project unit framework>
+- integration → Supertest / httpx against local server
+- e2e → agent-browser (MUST use real browser, not mocked)
+  - Start service: <startup_command>
+  - Test against: <local_url>
+  - Include browser steps as comments for reproducibility
+
 Coverage target: <coverage_target>
 
-Tooling by test_type:
-- unit        → <project unit framework>
-- integration → Supertest / httpx against local server
-- e2e         → agent-browser (real browser, not mocked)
-  Start service first: <startup_command>
-  Test against: <local_url>
-
 Hard constraints:
-- Every "must" AC must have a passing test — no exceptions
-- e2e test files must include browser steps as comments for reproducibility
+- Every "must" AC must have a passing test
+- Use agent-browser for e2e, never mock browser
 - Do not test anything in out_of_scope
 ```
 
@@ -141,13 +148,15 @@ Hard constraints:
 ## Architect Reviewer — <spec_id>
 
 Read: docs/specs/<SPEC-ID>/spec.yaml (full)
-Read: full PR diff
+Read: code changes from Backend/Frontend agents
 
-Checklist — do not approve until all true:
+Review checklist:
 <architect_reviewer.checklist items>
+- API contracts match technical_contract
+- No out_of_scope items implemented
+- Code quality acceptable
 
-For each failure: comment with the AC id or out_of_scope item.
-Return to the relevant agent with a specific fix instruction.
+For each failure: comment with AC id, return to relevant agent for fix.
 ```
 
 ---
