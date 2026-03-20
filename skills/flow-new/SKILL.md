@@ -236,6 +236,12 @@ agent_teams:
       - "spec.yaml status is approved"
     notes: ""
 
+agent_status:
+  backend_engineer: pending    # pending | in-progress | done | failed
+  frontend_engineer: pending   # pending | in-progress | done | failed
+  qa_engineer: blocked         # blocked | ready | in-progress | done | failed
+  architect_reviewer: blocked  # blocked | ready | in-progress | done | failed
+
 changelog:
   - version: "1.0.0"
     date: ""

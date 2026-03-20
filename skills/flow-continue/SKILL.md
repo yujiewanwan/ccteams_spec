@@ -73,15 +73,148 @@ Status → artifact state mapping:
 
 Set `status: in-progress` in spec.yaml before starting.
 
-Dispatch all 4 agents in parallel. Each agent works independently with their relevant spec sections.
+Agent execution is **state-driven**. Parent agent coordinates based on `agent_status`.
 
-Parallel agent execution:
-- Backend Engineer → implements API/services
-- Frontend Engineer → implements UI components
-- QA Engineer → writes and runs all tests (unit/integration/e2e with agent-browser)
-- Architect Reviewer → reviews code against spec and checklist
+---
 
-All agents report results. If any agent finds issues, coordinate fixes.
+**Phase 1: Implementation (Parallel)**
+
+Launch when `agent_status.backend_engineer == pending` and `agent_status.frontend_engineer == pending`:
+
+**Backend Engineer:**
+```
+## Backend Engineer — <spec_id>
+
+Read: docs/specs/<SPEC-ID>/spec.yaml (technical_contract + agent_teams.backend_engineer)
+
+Scope: <backend_engineer.scope>
+Services: <services>
+Endpoints to implement: <api_endpoints_owned>
+Data model changes: <data_model_changes>
+Migration required: <database_migrations>
+Non-functional: <non_functional>
+Acceptance criteria: <AC items where test_type is integration>
+
+Hard constraints:
+- Do not implement anything in requirement.out_of_scope
+- Never store plaintext credentials
+- No direct commits to <git.base_branch>
+
+ON COMPLETE:
+- Set agent_status.backend_engineer = done (or failed if issues)
+- Report summary to parent agent
+```
+
+**Frontend Engineer:**
+```
+## Frontend Engineer — <spec_id>
+
+Read: docs/specs/<SPEC-ID>/spec.yaml (agent_teams.frontend_engineer)
+
+Scope: <frontend_engineer.scope>
+Components: <components>
+API endpoints to consume: <api_endpoints_consumed>
+Design refs: <design_refs>
+Acceptance criteria: <AC items where test_type is e2e or manual>
+
+Hard constraints:
+- Do not implement anything in requirement.out_of_scope
+- Do not add any UI elements not listed in components
+
+ON COMPLETE:
+- Set agent_status.frontend_engineer = done (or failed if issues)
+- Report summary to parent agent
+```
+
+Parent agent waits for BOTH backend and frontend to reach `done` status.
+
+---
+
+**Phase 2: Testing (Triggered when Phase 1 done)**
+
+When `agent_status.backend_engineer == done` AND `agent_status.frontend_engineer == done`:
+- Set `agent_status.qa_engineer = ready`
+- Launch QA Engineer
+
+**QA Engineer (starts services + tests with agent-browser):**
+```
+## QA Engineer — <spec_id>
+
+Read: docs/specs/<SPEC-ID>/spec.yaml (acceptance_criteria + agent_teams.qa_engineer)
+Read: docs/specs/<SPEC-ID>/test-cases.md
+
+Responsibilities:
+1. Auto-discover and start services:
+   - Read CLAUDE.md for startup instructions if exists
+   - Else detect project type and use default commands:
+     * pom.xml/build.gradle → ./mvnw spring-boot:run / ./gradlew bootRun
+     * package.json → npm run dev / npm start
+     * requirements.txt/pyproject.toml → python main.py / uvicorn
+     * go.mod → go run .
+     * Cargo.toml → cargo run
+   - Start backend and frontend, wait for <local_url> ready
+
+2. Run ALL tests:
+   - unit tests
+   - integration tests (against running services)
+   - e2e tests with agent-browser (real browser, automated)
+     - MUST use agent-browser tool, never mock
+     - Include browser steps as comments
+
+3. Stop services after testing
+
+Coverage target: <coverage_target>
+
+Hard constraints:
+- YOU start the services, do not ask human
+- Every "must" AC must have a passing test
+- Use agent-browser for e2e, never mock browser
+- Do not test anything in out_of_scope
+
+ON COMPLETE:
+- Set agent_status.qa_engineer = done (or failed if issues)
+- Report test results to parent agent
+```
+
+Parent agent waits for QA to reach `done` status.
+
+---
+
+**Phase 3: Review (Triggered when Phase 2 done)**
+
+When `agent_status.qa_engineer == done`:
+- Set `agent_status.architect_reviewer = ready`
+- Launch Architect Reviewer
+
+**Architect Reviewer:**
+```
+## Architect Reviewer — <spec_id>
+
+Read: docs/specs/<SPEC-ID>/spec.yaml (full)
+Read: code changes from all previous agents
+
+Review checklist:
+- API contracts match technical_contract
+- No out_of_scope items implemented
+- Code quality acceptable
+- All tests pass
+- Architecture decisions followed
+
+For each failure: comment with AC id, set status = failed, return to relevant agent.
+
+ON COMPLETE:
+- Set agent_status.architect_reviewer = done (or failed if issues)
+- Report review results to parent agent
+```
+
+Parent agent waits for Architect to reach `done` status.
+
+---
+
+**Completion:**
+
+When ALL agents reach `done`:
+- Proceed to Pre-test Gate (or skip if QA already ran comprehensive tests)
 
 **Backend Engineer:**
 ```
@@ -169,30 +302,16 @@ For each failure: comment with AC id, return to relevant agent for fix.
 
 ---
 
-### If status = `in-progress` → Run Pre-Test Gate
+### If status = `in-progress` → Verify Agent Completion
 
-QA Agent executes:
-1. Start backend service
-2. Start frontend service
-3. Wait for services ready
-4. Run all tests (unit/integration/e2e with agent-browser)
-5. Generate coverage report
-6. Stop services
+Check `agent_status`:
+- ALL agents should be `done`
+- If any agent is `failed` → re-dispatch that agent with fix instructions
+- If QA agent reported test failures → set backend/frontend status back to `pending` and re-run Phase 1-2
 
-Pre-test gate checklist:
-```
-Pre-test gate — <spec_id>
-
-[ ] Services started by QA Agent (not human)
-[ ] All unit tests passed
-[ ] All integration tests passed
-[ ] agent-browser e2e tests passed
-[ ] No console errors on pages covered by e2e ACs
-[ ] Coverage meets or exceeds <coverage_target>
-```
-
-If all green → set `status: human-testing` in spec.yaml, then run the human-test step below.
-If any red → fix and re-run. Do not advance status.
+Once all agents `done`:
+- Set `status: human-testing` in spec.yaml
+- Run human-test step below
 
 **Human-test checklist** (print after gate passes):
 
