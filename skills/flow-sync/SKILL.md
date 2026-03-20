@@ -79,32 +79,75 @@ Print the updated `test-cases.md` in a code block.
 
 ---
 
-## Step 5 — Worktree Cleanup (if applicable)
+## Step 5 — Commit and Create PR
 
-If `git.worktree_enabled: true`, print:
+**Do this automatically — do not ask the user to do it manually.**
+
+### 5a — Commit the updated spec files
 
 ```bash
-# After PR is merged, clean up the worktree:
-git worktree remove <worktree_path>
-git branch -d <branch>
+git add docs/specs/<SPEC-ID>/requirement.md
+git add docs/specs/<SPEC-ID>/test-cases.md
+git add docs/specs/<SPEC-ID>/spec.yaml
+git commit -m "docs(<SPEC-ID>): sync spec artifacts — status: done"
 ```
+
+### 5b — Push current branch
+
+```bash
+git push -u origin <current_branch>
+```
+
+### 5c — Create PR using `gh`
+
+```bash
+gh pr create \
+  --title "<PR title from spec>" \
+  --body "$(cat <<'EOF'
+## <SPEC-ID> — <title>
+
+<requirement.summary>
+
+### Acceptance Criteria
+<list AC ids and titles>
+
+### Spec Artifacts
+- docs/specs/<SPEC-ID>/requirement.md
+- docs/specs/<SPEC-ID>/test-cases.md
+- docs/specs/<SPEC-ID>/spec.yaml
+
+🤖 Generated with flow-spec-suite
+EOF
+)" \
+  --base <git.base_branch> \
+  --head <current_branch>
+```
+
+Print the PR URL after creation.
 
 ---
 
-## Step 6 — PR Checklist
+## Step 6 — Final Summary
 
-Print the final checklist:
+Print:
 
 ```
-PR checklist — SPEC-001
+✓ <SPEC-ID> — <title>
 ──────────────────────────────────────────────────────
-[ ] docs/specs/SPEC-001/requirement.md   status: done, decisions filled
-[ ] docs/specs/SPEC-001/test-cases.md    status: done, results filled
-[ ] docs/specs/SPEC-001/spec.yaml        status: done, changelog updated
-[ ] All three files committed in the same PR as the code
-[ ] PR diff shows both spec changes and code changes
-[ ] Architect reviewer checklist complete before merge
+✓ requirement.md     synced
+✓ test-cases.md      synced
+✓ spec.yaml          synced (status: done)
+✓ Committed to branch: <branch>
+✓ PR created: <PR URL>
 ──────────────────────────────────────────────────────
-After merge: these three files on <base_branch> are the
-baseline for the next iteration of this feature.
+Remaining: Architect reviewer approval before merge.
+After merge: run worktree cleanup below.
+```
+
+If `git.worktree_enabled: true`, print cleanup commands:
+
+```bash
+# Run after PR is merged:
+git worktree remove <worktree_path>
+git branch -d <branch>
 ```
