@@ -79,7 +79,22 @@ Print the updated `test-cases.md` in a code block.
 
 ---
 
-## Step 5 — Commit and Create PR
+## Step 5 — Confirm Before Commit
+
+After updating all three files, ask once:
+
+> Docs updated. Any issues before I commit and create the PR?
+> [no, proceed / yes: <describe>]
+
+**User says "no" or "proceed" or "looks good":**
+- Continue to Step 6 immediately.
+
+**User describes issues:**
+- Fix the relevant doc(s), then ask again.
+
+---
+
+## Step 6 — Commit and Create PR
 
 **Do this automatically — do not ask the user to do it manually.**
 
@@ -127,7 +142,7 @@ Print the PR URL after creation.
 
 ---
 
-## Step 6 — Final Summary
+## Step 7 — Final Summary
 
 Print:
 
