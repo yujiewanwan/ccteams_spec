@@ -73,15 +73,14 @@ Status → artifact state mapping:
 
 Set `status: in-progress` in spec.yaml before starting.
 
-Agent execution is **state-driven**. Parent agent coordinates based on `agent_status`.
+Agent execution is **state-driven** with event-triggered transitions. All agents are launched simultaneously, but QA and Architect start in `waiting` state.
 
 ---
 
-**Phase 1: Implementation (Parallel)**
+**Launch All Agents (Parallel)**
 
-Launch when `agent_status.backend_engineer == pending` and `agent_status.frontend_engineer == pending`:
+Launch Backend, Frontend, QA, and Architect agents simultaneously:
 
-**Backend Engineer:**
 ```
 ## Backend Engineer — <spec_id>
 
@@ -105,7 +104,6 @@ ON COMPLETE:
 - Report summary to parent agent
 ```
 
-**Frontend Engineer:**
 ```
 ## Frontend Engineer — <spec_id>
 
@@ -126,24 +124,17 @@ ON COMPLETE:
 - Report summary to parent agent
 ```
 
-Parent agent waits for BOTH backend and frontend to reach `done` status.
-
----
-
-**Phase 2: Testing (Triggered when Phase 1 done)**
-
-When `agent_status.backend_engineer == done` AND `agent_status.frontend_engineer == done`:
-- Set `agent_status.qa_engineer = ready`
-- Launch QA Engineer
-
-**QA Engineer (starts services + tests with agent-browser):**
 ```
 ## QA Engineer — <spec_id>
 
 Read: docs/specs/<SPEC-ID>/spec.yaml (acceptance_criteria + agent_teams.qa_engineer)
 Read: docs/specs/<SPEC-ID>/test-cases.md
 
-Responsibilities:
+**Current Status:** WAITING for backend and frontend to complete
+
+**Trigger Condition:** Start testing when BOTH backend_engineer = done AND frontend_engineer = done
+
+**Responsibilities:**
 1. Auto-discover and start services:
    - Read CLAUDE.md for startup instructions if exists
    - Else detect project type and use default commands:
@@ -163,6 +154,10 @@ Responsibilities:
 
 3. Stop services after testing
 
+**Feedback Loop:**
+- If tests FAIL: Set agent_status.qa_engineer = failed, report failing ACs to parent
+- Parent will re-dispatch Backend/Frontend with fix instructions
+
 Coverage target: <coverage_target>
 
 Hard constraints:
@@ -171,27 +166,19 @@ Hard constraints:
 - Use agent-browser for e2e, never mock browser
 - Do not test anything in out_of_scope
 
-ON COMPLETE:
-- Set agent_status.qa_engineer = done (or failed if issues)
+ON COMPLETE (all tests pass):
+- Set agent_status.qa_engineer = done
 - Report test results to parent agent
 ```
 
-Parent agent waits for QA to reach `done` status.
-
----
-
-**Phase 3: Review (Triggered when Phase 2 done)**
-
-When `agent_status.qa_engineer == done`:
-- Set `agent_status.architect_reviewer = ready`
-- Launch Architect Reviewer
-
-**Architect Reviewer:**
 ```
 ## Architect Reviewer — <spec_id>
 
 Read: docs/specs/<SPEC-ID>/spec.yaml (full)
-Read: code changes from all previous agents
+
+**Current Status:** WAITING for QA testing to complete
+
+**Trigger Condition:** Start review when qa_engineer = done
 
 Review checklist:
 - API contracts match technical_contract
@@ -207,14 +194,64 @@ ON COMPLETE:
 - Report review results to parent agent
 ```
 
-Parent agent waits for Architect to reach `done` status.
+---
+
+**State Transitions**
+
+```
+Initial:
+  backend_engineer: in-progress
+  frontend_engineer: in-progress
+  qa_engineer: waiting
+  architect_reviewer: waiting
+
+When backend_engineer = done AND frontend_engineer = done:
+  → Set qa_engineer = in-progress (trigger QA to start testing)
+
+When qa_engineer = done:
+  → Set architect_reviewer = in-progress (trigger Architect review)
+
+When qa_engineer = failed:
+  → Parent agent analyzes failures
+  → Re-dispatch affected agents (backend or frontend) with fix instructions
+  → Reset qa_engineer = waiting
+  → Loop until all tests pass
+
+When ALL agents = done:
+  → Proceed to Pre-test Gate
+```
 
 ---
 
-**Completion:**
+**Parent Agent Coordination Logic**
 
-When ALL agents reach `done`:
-- Proceed to Pre-test Gate (or skip if QA already ran comprehensive tests)
+Parent agent must:
+1. Launch all 4 agents simultaneously
+2. Monitor agent_status changes
+3. Trigger state transitions based on completion events
+4. Handle failure feedback loops
+
+Example coordination output:
+```
+SPEC-002 Agent Execution
+─────────────────────────────────────────
+[◐] Backend Engineer    in-progress
+[◐] Frontend Engineer   in-progress
+[○] QA Engineer         waiting (for backend+frontend)
+[○] Architect Reviewer  waiting (for QA)
+─────────────────────────────────────────
+```
+
+When Backend and Frontend done:
+```
+SPEC-002 Agent Execution
+─────────────────────────────────────────
+[✓] Backend Engineer    done
+[✓] Frontend Engineer   done
+[◐] QA Engineer         in-progress  ← triggered
+[○] Architect Reviewer  waiting
+─────────────────────────────────────────
+```
 
 **Backend Engineer:**
 ```

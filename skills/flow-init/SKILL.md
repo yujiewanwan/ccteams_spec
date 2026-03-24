@@ -137,7 +137,11 @@ Output format:
 - status: approved (skip draft phase)
 - Copy all technical details from source
 - Set agent_teams with appropriate scope hints
-- agent_status all pending except qa/architect blocked
+- agent_status:
+  - backend_engineer: pending
+  - frontend_engineer: pending
+  - qa_engineer: waiting (starts after backend+frontend done)
+  - architect_reviewer: waiting (starts after QA done)
 ```
 
 ---
@@ -287,11 +291,95 @@ docs/specs/<SPEC-ID>/
 └── spec.yaml         ✓ written (status: approved)
 
 Source provenance preserved in requirement.md#Source
+```
+
+### Worktree Decision
+
+Assess complexity and ask:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+<SPEC-ID> Created
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Complexity Assessment:
+• Scope: <frontend/backend/database>
+• AC Count: <n>
+• Est. Duration: <short|medium|large>
+
+Use worktree for isolated development?
+[yes] Use worktree (recommended for complex features, keeps main clean)
+[no]  Develop in main directory (quick, no window switching)
+
+Your choice:
+```
+
+**If user chooses "yes":**
+- Set `git.worktree_enabled: true` in spec.yaml
+- Run worktree setup steps below
+
+**If user chooses "no":**
+- Set `git.worktree_enabled: false` in spec.yaml
+- Print: `Run /flow:continue to start development.`
+
+---
+
+## Worktree Setup (if enabled)
+
+### Check .gitignore for .worktrees/
+
+```bash
+grep -q ".worktrees/" .gitignore 2>/dev/null && echo "Already ignored" || echo "Not found"
+```
+
+If not found, ask user:
+> `.worktrees/` is not in .gitignore yet. Add it now? [yes/no]
+
+**If user says yes:**
+```bash
+echo ".worktrees/" >> .gitignore
+git add .gitignore
+git commit -m "chore: add .worktrees to .gitignore"
+```
+
+### Step 1: Commit spec documents to main
+
+```bash
+git add docs/specs/<SPEC-ID>/
+git commit -m "<SPEC-ID>: alignment complete [skip ci]"
+git tag <SPEC-ID>-alignment
+git log --oneline -1
+```
+
+### Step 2: Create worktree from the new commit
+
+```bash
+git worktree add .worktrees/<SPEC-ID> -b <branch>
+git worktree list
+```
+
+Then print:
+
+```
+⚠️  Open a new Claude window for execution.
+   Working directory: `.worktrees/<SPEC-ID>/`
+   The spec is at: `docs/specs/<SPEC-ID>/spec.yaml`
+   Say: `/flow:continue` — Claude will find it automatically.
+   Do not run agents in this window.
+```
+
+---
+
+## Finish (if worktree disabled)
+
+```
+docs/specs/<SPEC-ID>/
+├── requirement.md    ✓ written (with source embedded)
+├── test-cases.md     ✓ written
+└── spec.yaml         ✓ written (status: approved)
 
 Run /flow:continue to start development.
 ```
-
-Same worktree question as `/flow:new` (Step 7 and Worktree Setup).
 
 ---
 

@@ -237,10 +237,16 @@ agent_teams:
     notes: ""
 
 agent_status:
-  backend_engineer: pending    # pending | in-progress | done | failed
-  frontend_engineer: pending   # pending | in-progress | done | failed
-  qa_engineer: blocked         # blocked | ready | in-progress | done | failed
-  architect_reviewer: blocked  # blocked | ready | in-progress | done | failed
+  backend_engineer: pending     # pending | in-progress | done | failed
+  frontend_engineer: pending    # pending | in-progress | done | failed
+  qa_engineer: waiting          # waiting | in-progress | done | failed
+  architect_reviewer: waiting   # waiting | in-progress | done | failed
+
+# State transitions:
+# - All agents launch simultaneously
+# - QA starts when BOTH backend AND frontend = done
+# - Architect starts when QA = done
+# - If QA fails, reset affected agents to pending, QA back to waiting
 
 changelog:
   - version: "1.0.0"
