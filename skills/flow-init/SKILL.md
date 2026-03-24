@@ -148,9 +148,18 @@ Output format:
 
 ## Step 4 — Assign Spec ID
 
-Same logic as `/flow:new`:
-- Scan `docs/specs/` for existing IDs
-- Increment to next (SPEC-001 if none)
+**Algorithm:**
+1. Scan `docs/specs/` for all directories matching `SPEC-NNN` pattern
+2. Extract numeric parts, find the **maximum** value
+3. New spec_id = `SPEC-{max + 1}` (zero-padded to 3 digits)
+4. If no specs exist, start at `SPEC-001`
+
+**Example:**
+- Existing: SPEC-001, SPEC-007 → New: SPEC-008
+- Existing: SPEC-001, SPEC-002 → New: SPEC-003
+- None exist → New: SPEC-001
+
+**Never skip numbers** — always use max + 1.
 
 ---
 
