@@ -5,8 +5,8 @@
     "email": "jerrywan965@gmail.com"
   },
   "metadata": {
-    "description": "Spec-driven development workflow: flow:new, flow:continue, flow:sync, flow:ff",
-    "version": "1.0.0"
+    "description": "Spec-driven development workflow: flow:init, flow:new, flow:continue, flow:sync, flow:ff",
+    "version": "1.1.0"
   },
   "plugins": [
     {
@@ -15,6 +15,7 @@
       "source": "./",
       "strict": false,
       "skills": [
+        "./skills/flow-init",
         "./skills/flow-new",
         "./skills/flow-continue",
         "./skills/flow-sync",
