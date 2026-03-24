@@ -73,16 +73,49 @@ Status → artifact state mapping:
 
 Set `status: in-progress` in spec.yaml before starting.
 
-Agent execution is **state-driven** with event-triggered transitions. All agents are launched simultaneously, but QA and Architect start in `waiting` state.
+**CRITICAL: All 4 agents MUST be launched simultaneously.** This is not sequential phases.
+The parent agent coordinates state transitions based on `agent_status` changes reported by sub-agents.
 
 ---
 
-**Launch All Agents (Parallel)**
+**Agent State Machine**
 
-Launch Backend, Frontend, QA, and Architect agents simultaneously:
+```yaml
+Initial State:
+  backend_engineer: in-progress    # Start immediately
+  frontend_engineer: in-progress   # Start immediately
+  qa_engineer: waiting             # Waits for BE+FE done
+  architect_reviewer: waiting      # Waits for QA done
+
+Transitions:
+  When backend_engineer = done AND frontend_engineer = done:
+    → qa_engineer: in-progress     # Trigger QA to start testing
+
+  When qa_engineer = done:
+    → architect_reviewer: in-progress  # Trigger Architect review
+
+  When qa_engineer = failed:
+    → Parent analyzes failures
+    → Reset affected agents to pending
+    → Re-dispatch with fix instructions
+    → Reset qa_engineer to waiting
+    → Loop until all tests pass
+```
+
+---
+
+**MUST: Launch All 4 Agents Now**
+
+The following 4 agents are launched **simultaneously**. Do NOT wait for one to finish before starting another.
+
+### Agent 1: Backend Engineer
+
+### Agent 1: Backend Engineer
 
 ```
 ## Backend Engineer — <spec_id>
+
+STATUS: in-progress (start immediately)
 
 Read: docs/specs/<SPEC-ID>/spec.yaml (technical_contract + agent_teams.backend_engineer)
 
@@ -104,8 +137,14 @@ ON COMPLETE:
 - Report summary to parent agent
 ```
 
+---
+
+### Agent 2: Frontend Engineer
+
 ```
 ## Frontend Engineer — <spec_id>
+
+STATUS: in-progress (start immediately)
 
 Read: docs/specs/<SPEC-ID>/spec.yaml (agent_teams.frontend_engineer)
 
@@ -124,17 +163,21 @@ ON COMPLETE:
 - Report summary to parent agent
 ```
 
+---
+
+### Agent 3: QA Engineer
+
 ```
 ## QA Engineer — <spec_id>
+
+STATUS: waiting (triggered when Backend AND Frontend both = done)
 
 Read: docs/specs/<SPEC-ID>/spec.yaml (acceptance_criteria + agent_teams.qa_engineer)
 Read: docs/specs/<SPEC-ID>/test-cases.md
 
-**Current Status:** WAITING for backend and frontend to complete
+TRIGGER CONDITION: Start testing when BOTH backend_engineer = done AND frontend_engineer = done
 
-**Trigger Condition:** Start testing when BOTH backend_engineer = done AND frontend_engineer = done
-
-**Responsibilities:**
+Responsibilities:
 1. Auto-discover and start services:
    - Read CLAUDE.md for startup instructions if exists
    - Else detect project type and use default commands:
@@ -154,9 +197,10 @@ Read: docs/specs/<SPEC-ID>/test-cases.md
 
 3. Stop services after testing
 
-**Feedback Loop:**
+FEEDBACK LOOP:
 - If tests FAIL: Set agent_status.qa_engineer = failed, report failing ACs to parent
 - Parent will re-dispatch Backend/Frontend with fix instructions
+- Loop until all tests pass
 
 Coverage target: <coverage_target>
 
@@ -171,14 +215,18 @@ ON COMPLETE (all tests pass):
 - Report test results to parent agent
 ```
 
+---
+
+### Agent 4: Architect Reviewer
+
 ```
 ## Architect Reviewer — <spec_id>
 
+STATUS: waiting (triggered when QA = done)
+
 Read: docs/specs/<SPEC-ID>/spec.yaml (full)
 
-**Current Status:** WAITING for QA testing to complete
-
-**Trigger Condition:** Start review when qa_engineer = done
+TRIGGER CONDITION: Start review when qa_engineer = done
 
 Review checklist:
 - API contracts match technical_contract
@@ -251,90 +299,6 @@ SPEC-002 Agent Execution
 [◐] QA Engineer         in-progress  ← triggered
 [○] Architect Reviewer  waiting
 ─────────────────────────────────────────
-```
-
-**Backend Engineer:**
-```
-## Backend Engineer — <spec_id>
-
-Read: docs/specs/<SPEC-ID>/spec.yaml (technical_contract + agent_teams.backend_engineer)
-
-Scope: <backend_engineer.scope>
-Services: <services>
-Endpoints to implement: <api_endpoints_owned>
-Data model changes: <data_model_changes>
-Migration required: <database_migrations>
-Non-functional: <non_functional>
-Acceptance criteria: <AC items where test_type is integration>
-
-Hard constraints:
-- Do not implement anything in requirement.out_of_scope
-- Never store plaintext credentials
-- No direct commits to <git.base_branch>
-```
-
-**Frontend Engineer:**
-```
-## Frontend Engineer — <spec_id>
-
-Read: docs/specs/<SPEC-ID>/spec.yaml (agent_teams.frontend_engineer)
-
-Scope: <frontend_engineer.scope>
-Components: <components>
-API endpoints to consume: <api_endpoints_consumed>
-Design refs: <design_refs>
-Acceptance criteria: <AC items where test_type is e2e or manual>
-
-Hard constraints:
-- Do not implement anything in requirement.out_of_scope
-- Do not add any UI elements not listed in components
-```
-
-**QA Engineer (starts services + tests with agent-browser):**
-```
-## QA Engineer — <spec_id>
-
-Read: docs/specs/<SPEC-ID>/spec.yaml (acceptance_criteria + agent_teams.qa_engineer)
-Read: docs/specs/<SPEC-ID>/test-cases.md
-
-Responsibilities:
-1. Start services automatically (do NOT wait for human):
-   - Backend: <startup_command_backend> (e.g., ./mvnw spring-boot:run)
-   - Frontend: <startup_command_frontend> (e.g., npm run dev)
-   - Wait for <local_url> to be ready
-
-2. Run ALL tests:
-   - unit tests
-   - integration tests (against running backend)
-   - e2e tests with agent-browser (real browser, automated)
-     - MUST use agent-browser tool, never mock
-     - Include browser steps as comments
-
-3. Stop services after testing
-
-Coverage target: <coverage_target>
-
-Hard constraints:
-- YOU start the services, do not ask human to start
-- Every "must" AC must have a passing test
-- Use agent-browser for e2e, never mock browser
-- Do not test anything in out_of_scope
-```
-
-**Architect Reviewer:**
-```
-## Architect Reviewer — <spec_id>
-
-Read: docs/specs/<SPEC-ID>/spec.yaml (full)
-Read: code changes from Backend/Frontend agents
-
-Review checklist:
-<architect_reviewer.checklist items>
-- API contracts match technical_contract
-- No out_of_scope items implemented
-- Code quality acceptable
-
-For each failure: comment with AC id, return to relevant agent for fix.
 ```
 
 ---
