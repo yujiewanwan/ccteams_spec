@@ -1,6 +1,6 @@
 # Flow Spec Suite
 
-Spec-driven development workflow for Claude Code. Four commands from idea to merge.
+Spec-driven development workflow for Claude Code. **Five** commands from idea to merge.
 
 > 🌏 [中文版说明](README_zh.md) / Chinese version
 
@@ -55,6 +55,7 @@ cp -r /path/to/ccteams_spec/skills/* .claude/skills/
 /plugin uninstall flow-spec-suite@ccteams_spec
 
 # Or manual
+rm -rf .claude/skills/flow-init
 rm -rf .claude/skills/flow-new
 rm -rf .claude/skills/flow-continue
 rm -rf .claude/skills/flow-sync
@@ -64,10 +65,14 @@ rm -rf .claude/skills/flow-ff
 ## Quick Start
 
 ```bash
-# 1. Create spec (human alignment)
+# 1. Create spec from scratch (human alignment)
 /flow:new
 # → PM + Architect + QA agents ask questions in parallel
 # → Generates docs/specs/SPEC-001/spec.yaml
+
+# OR: Bootstrap from existing plan/document
+/flow:init                    # Auto-detect from context
+/flow:init from docs/plan.md  # Explicit file path
 
 # 2. Develop (fully automated)
 /flow:continue        # Start agent-teams (FE/BE/QA/Review)
@@ -82,9 +87,15 @@ rm -rf .claude/skills/flow-ff
 
 ## Commands
 
+**Entry points** (choose one):
+| Command | What it does | When to use |
+|---------|--------------|-------------|
+| `/flow:init` | Bootstrap spec from existing docs/context | **Already have a plan/document** |
+| `/flow:new` | Three agents align in parallel → generate spec | **Starting from scratch** |
+
+**Development flow** (after init/new):
 | Command | What it does |
 |---------|--------------|
-| `/flow:new` | Three agents align in parallel → generate spec |
 | `/flow:continue` | Auto-execute next step based on spec.yaml status |
 | `/flow:sync` | Update docs, generate PR checklist |
 | `/flow:ff` | Fast-forward mode (when all ACs are automated) |

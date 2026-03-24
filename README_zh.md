@@ -1,6 +1,6 @@
 # Flow Spec Suite
 
-面向 Claude Code 的 spec-driven 开发工作流。四个命令从需求到合并。
+面向 Claude Code 的 spec-driven 开发工作流。**五个**命令从需求到合并。
 
 > 🌏 [English Version](README.md)
 
@@ -55,6 +55,7 @@ cp -r /path/to/ccteams_spec/skills/* .claude/skills/
 /plugin uninstall flow-spec-suite@ccteams_spec
 
 # 或手动卸载
+rm -rf .claude/skills/flow-init
 rm -rf .claude/skills/flow-new
 rm -rf .claude/skills/flow-continue
 rm -rf .claude/skills/flow-sync
@@ -64,10 +65,14 @@ rm -rf .claude/skills/flow-ff
 ## 快速开始
 
 ```bash
-# 1. 创建 spec（人工对齐）
+# 1. 创建 spec（方式 A：从零开始，人工对齐）
 /flow:new
 # → PM + 架构师 + QA 三个 Agent 并行提问
 # → 生成 docs/specs/SPEC-001/spec.yaml
+
+# 方式 B：从已有文档/Plan 快速启动
+/flow:init                    # 自动检测上下文中的 plan
+/flow:init from docs/plan.md  # 指定文件路径
 
 # 2. 开发（全自动）
 /flow:continue        # 启动 agent-teams（FE/BE/QA/Review）
@@ -82,9 +87,15 @@ rm -rf .claude/skills/flow-ff
 
 ## 命令说明
 
+**入口命令**（二选一）：
+| 命令 | 作用 | 使用场景 |
+|---------|--------------|-------------|
+| `/flow:init` | 从已有文档/上下文生成 spec | **已有 plan 或文档** |
+| `/flow:new` | 三角色并行对齐 → 生成 spec | **从零开始** |
+
+**开发流程**（init/new 之后）：
 | 命令 | 作用 |
 |---------|--------------|
-| `/flow:new` | 三角色并行对齐 → 生成 spec |
 | `/flow:continue` | 根据 spec.yaml 状态自动执行下一步 |
 | `/flow:sync` | 更新文档，生成 PR checklist |
 | `/flow:ff` | 快进模式（全自动化时一键到底） |
