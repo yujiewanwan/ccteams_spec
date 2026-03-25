@@ -248,10 +248,10 @@ agent_teams:
     notes: ""
 
 agent_status:
-  backend_engineer: pending     # pending | in-progress | done | failed
-  frontend_engineer: pending    # pending | in-progress | done | failed
-  qa_engineer: waiting          # waiting | in-progress | done | failed
-  architect_reviewer: waiting   # waiting | in-progress | done | failed
+  backend_engineer: in-progress   # in-progress at start (simultaneous launch)
+  frontend_engineer: in-progress  # in-progress at start (simultaneous launch)
+  qa_engineer: waiting            # waiting | in-progress | done | failed
+  architect_reviewer: waiting     # waiting | in-progress | done | failed
 
 # State transitions:
 # - All agents launch simultaneously

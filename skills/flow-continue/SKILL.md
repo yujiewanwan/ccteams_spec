@@ -262,6 +262,7 @@ When qa_engineer = done:
 When qa_engineer = failed:
   → Parent agent analyzes failures
   → Re-dispatch affected agents (backend or frontend) with fix instructions
+  → Reset affected agents to in-progress (immediate restart)
   → Reset qa_engineer = waiting
   → Loop until all tests pass
 
@@ -396,3 +397,4 @@ Run /flow:new to finish the alignment session.
 2. Never advance status without completing the current step's gate.
 3. Never assume — if spec.yaml is ambiguous, ask before acting.
 4. Always print the artifact state summary at the start of every `/flow:continue` call.
+5. **Agent status consistency**: Backend and Frontend start as `in-progress` (not `pending`) because they launch simultaneously. Only QA and Architect start as `waiting`.
