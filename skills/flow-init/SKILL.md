@@ -138,10 +138,10 @@ Output format:
 - Copy all technical details from source
 - Set agent_teams with appropriate scope hints
 - agent_status:
-  - backend_engineer: pending
-  - frontend_engineer: pending
-  - qa_engineer: waiting (starts after backend+frontend done)
-  - architect_reviewer: waiting (starts after QA done)
+  - backend_engineer: in-progress   # Start immediately
+  - frontend_engineer: in-progress  # Start immediately
+  - qa_engineer: waiting            # Starts after backend+frontend done
+  - architect_reviewer: waiting     # Starts after QA done
 ```
 
 ---

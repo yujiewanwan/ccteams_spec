@@ -105,14 +105,16 @@ Stop here. Do not advance to sync.
 ## Step 5 — After All Steps Complete
 
 If no manual ACs (or after `/flow:continue` processes manual results):
-Run `/flow:sync` logic inline — update all three artifacts and print PR checklist.
+Run `/flow:sync` logic inline — update all three artifacts, **commit, create PR**, and print summary.
 
 ```
 All steps complete.
 
-PR checklist:
-[ ] docs/specs/SPEC-001/requirement.md  — status: done
-[ ] docs/specs/SPEC-001/test-cases.md   — results filled in
-[ ] docs/specs/SPEC-001/spec.yaml       — status: done, changelog updated
-[ ] All three files committed in the same PR as the code
+PR created: <URL>
+──────────────────────────────────
+[✓] Agent execution
+[✓] Pre-test gate
+[✓] Human-test (all automated)
+[✓] Sync artifacts + commit + create PR
+──────────────────────────────────
 ```

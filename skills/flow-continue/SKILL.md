@@ -110,8 +110,6 @@ The following 4 agents are launched **simultaneously**. Do NOT wait for one to f
 
 ### Agent 1: Backend Engineer
 
-### Agent 1: Backend Engineer
-
 ```
 ## Backend Engineer — <spec_id>
 
